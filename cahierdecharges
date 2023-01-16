@@ -1,1 +1,21 @@
+Menu de départ:
+  - cheat code pour aller à un niveau
+  - bouton commencer le jeu
+  - (bouton boutique)
 
+Niveau 1:
+  - course de voiture vue de dessus.
+  - voiture explose dès que mur touché et recommence le niveau
+  - (obstacles)
+  
+Niveau 2:
+  - chemin voiture vers fusée avec un méchant qui garde la fusée
+
+Niveau 3:
+  - fusée qui évite météorites et peut tirer dessus
+  
+Niveau 4:
+  - cherche clef de moto dans la fusée dans le noir avec lumière que autour de lui
+  
+Niveau 5:
+  - parcours de moto style rider avec gravité de la lune
