@@ -1,290 +1,316 @@
 import pyxel
-
-"""variables démarrage"""
-# Dimensions de la fenêtre de jeu
-screen_width = 640
-screen_height = 320
-
-#Hauteur de l'image du personnage
-perso_height = 69
-
-# Largeur de l'image du personnage
-perso_width = 32
-
-# Couleur de la banque d'image qui n'apparaît pas à l'écran
+import random
+# variables pour le jeu
 transparent_color = 2
-
-# Couleur de l'arrière-plan nombre entre 0 et 16
 background_color = 1
+screen_width = 256
+screen_height = 128
+walking_max_right = 100
+walking_max_left = 100
+scroll_x = 0
+scroll_y = 0
+liste_obstacles = [(0, 4), (1, 4), (0, 5), (1, 5)]
+game = False
 
-# Ordonnée du sol
-floor_y = screen_height - 10
-
-tile_mur_x = 10
-avancee_max_droite = 320
-avancee_max_gauche = 100
     
-def get_tile(tile_x, tile_y):
-    return pyxel.tilemap(0).pget(tile_x, tile_y)
-
-
-def detect_collision(x, y, dy):
-    x1 = x // 8
-    y1 = y // 8
-    x2 = (x + 8 - 1) // 8
-    y2 = (y + 8 - 1) // 8
-    for yi in range(y1, y2 + 1):
-        for xi in range(x1, x2 + 1):
-            if get_tile(xi, yi)[0] >= tile_mur_x:
-                return True
-    if dy > 0 and y % 8 == 1:
-        for xi in range(x1, x2 + 1):
-            if get_tile(xi, y1 + 1) == tile_sol:
-                return True
-    return False  
-
-
-class Personnage:
-    
+class Player:
     def __init__(self):
-        
-        """Méthode du personnage"""
-        
-        # Apparence du Personnage
-        self.height = perso_height
-        self.width = perso_width
-        self.color = 9
-        
-        # Position du Personnage
-        self.x = screen_width/2
-        self.y_min = floor_y - self.height
-        self.y = self.y_min
-        self.scroll_x = 0
-        
-        """Déplacements horizontaux du Personnage"""
-        # Direction du personnage égale à -1 lorsqu'il est tourné vers la gauche et 1 vers la droite
+        self.width = 28
+        self.height = 31
+        self.chest_height = 21
+        self.x = screen_width //2
+        self.y = screen_height //2
+        self.img_x = 26
+        self.img_y = 0
+        self.speed = 2
         self.direction = 1
-        # Vitesse du personnage en pixels/frame
-        self.speed = 5
+        self.scroll_x = 0
+        self.is_walking = False
+        # variables de collisions
+        self.collision_right = False
+        self.collision_left = False
+        self.collision_up = False
+        self.collision_down = False
+        # leg frames fn =[u, v, w, d_x]
+        self.f_1 = [32, 21, 16, 0]
+        self.f_2 = [56, 21, 16, 0]
+        self.f_3 = [72, 21, 16, 0]
+        self.f_4 = [88, 21, 16, 0]
+        self.f_5 = [104, 21, 16, 0]
+        self.f_6 = [128, 21, 16, 0]
+        self.f_not_walking = [144, 21, 16, 0]
+        self.f =  self.f_1
+        self.f_jump = [167, 21, 18, 0]
+        self.y_r = 0
         
-        """Utilisation du jetpack"""
-        # Quantité de carburant initiale du jetpack du personnage (fixe) A NE PAS CHANGER
-        self.fuel_init = 9 #A NE PAS CHANGER
-        # Quantité de carburant variable du jetpack du personnage (variable)
-        self.fuel = self.fuel_init
-        # Quantité de carburant consommée chaque frame lors d'un saut
-        self.fuel_variations = 0.05
-        # taille de la jauge de carburant proportionnelle à la quantité de carburant restante
-        self.fuel_bar = self.fuel
-        # Coordonnées initiales en x et y de la jauge de carburant (en partant en haut à gauche de la fenêtre de jeu)
-        self.fuel_bar_x_init = 22
-        self.fuel_bar_y_init = 10
-        
-        self.health_bar_x_init = 4
-        self.health_bar_y_init = 10
-        self.health_bar_x = self.health_bar_x_init
-        self.health_bar_y = self.health_bar_y_init
-        # Coordonnées variables en x et y de la jauge de carburant (en partant en haut à gauche de la fenêtre de jeu)
-        self.fuel_bar_x = self.fuel_bar_x_init
-        self.fuel_bar_y = self.fuel_bar_y_init
-        # Couleur de la jauge de carburant qui varie en fonction du carburant consommé
-        self.fuel_bar_color = 10
+
         
         # Déplacements verticaux du Personnage / gravité
         self.gy = 0
-        self.jump = 12
-        self.jumping = False
+        self.jump_strength = 12
+        self.is_jumping = False
         self.gravity = 1
+        self.floor_y = screen_height
+        self.max_y_down = screen_height
+        self.max_y_up = 0
         
-        # Variables relatives aux tirs du Personnage
-        self.tir_liste = []
-        self.tir = False
-        self.tir_x = self.x + self.width
-        self.tir_y = self.y + 30
-        self.tir_speed = 10
-        self.tir_direction = self.direction
+        # variables de tirs
+        self.gunshots_list = []
+        self.gunshooting = False
+        self.gunshot_speed = 5
+        self.gunshot_y_position = 18
         
-        # variables relatives à la dague
-        self.dague_x = 50
-        self.dague_y = 50
-        self.map_dague_x = 64
-        self.map_dague_y = 88
-        self.dague_width = 16
-        self.dague_height = 16
+        self.shot_init = 25 #A NE PAS CHANGER
+        self.shot = self.shot_init
+        self.shot_variations = 1
+        self.shot_bar_x_init = 5
+        self.shot_bar_y_init = 5
+        self.shot_bar = self.shot
+        self.shot_bar_color = 7
+        self.shot_bar_x = 5
+        self.shot_bar_y = 5
+        self.shot_bar_height = self.shot_init
+        self.shot_bar_width = 5
 
-  
-    def deplacement_gauche_Personnage(self):
+    
+    
+    # Fonction detection collision 
+    def detection_collisions(self):
+
         
-        # Déplacement vers la gauche
-        if pyxel.btn(pyxel.KEY_Q) :
-            self.x -= self.speed
-            self.direction = -1
- 
-    def deplacement_droite_Personnage(self):
+        # detection collisions à right
+        d_x = (self.x-12 + self.width) // 8
+        d_y1 = (self.y)//8
+        d_y2 = (self.y + self.height - 1)//8
+        for d_yi in range(d_y1, d_y2 + 1):
+            if pyxel.tilemap(0).pget(d_x, d_yi) in liste_obstacles:
+                self.collision_right = True
+                break
+            else:
+                self.collision_right = False
+    
+    
+        # detection collision à left
+        g_x = (self.x-1)//8
+        g_y1 = (self.y)//8 
+        g_y2 = (self.y + self.height - 1)//8
+        for g_yi in range(g_y1, g_y2 + 1):
+            if pyxel.tilemap(0).pget(g_x, g_yi) in liste_obstacles:
+                self.collision_left = True
+                break
+            else:
+                self.collision_left = False
+            
+    
+        # detection collision en up
+        h_x1 = (self.x)//8
+        h_x2 = (self.x + self.width - 1)//8 
+        h_y = (self.y - 1)//8
+        for h_xi in range(h_x1, h_x2 + 1):
+            if pyxel.tilemap(0).pget(h_xi, h_y) in liste_obstacles :
+                self.collision_up = True
+                break
+            else:
+                self.collision_up = False
+    
+        # detection collision en down
+        b_x1 = (self.x)//8
+        b_x2 = (self.x + self.width - 1)//8 
+        b_y = (self.y + self.height + self.gy - 1)//8
+        for b_xi in range(b_x1, b_x2 + 1):
+            if pyxel.tilemap(0).pget(b_xi, b_y) in liste_obstacles :
+                self.collision_down = True
+                self.floor_y = b_y * 8
+                break
+            else:
+                self.collision_down = False
         
+    
+    # Fonction de déplacement du joueur
+    def player_move(self):
         if pyxel.btn(pyxel.KEY_D):
-            self.x += self.speed
+            self.is_walking = True
             self.direction = 1
- 
-    def deplacement_vertical_Personnage(self):    
-        # Dépolacement vers le haut / saut
-        if pyxel.btn(pyxel.KEY_SPACE) and self.y == self.y_min and self.fuel > 0:
-            self.jumping = True
-            self.gy -= self.jump
-        
-        # Déplacement vers le bas 
-        if pyxel.btn(pyxel.KEY_S) and self.y < self.y_min:
-            self.y += 10
-        
-        # Gravité en fin de saut    
-        if self.gy < 0:
-            self.y += self.gy
-            self.gy += self.gravity
-        
-        # Gravité lorsque la flèche du haut n'est plus pressée    
-        if not pyxel.btn(pyxel.KEY_SPACE) or self.fuel <= 0:
-            self.y += self.gy
-            self.gy += self.gravity
-        
-        # Le personnage arrête de tomber lorsqu'il touche le sol
-        if self.y > self.y_min:
-            self.jumping = False
-            self.y = self.y_min
-            self.gy = 0
-    
-    def scroll_player(self):
-        if self.x > (self.scroll_x + avancee_max_droite) and self.scroll_x < 1402:
-            self.scroll_x = self.x - avancee_max_droite
-        if self.x < (self.scroll_x + avancee_max_gauche) and self.scroll_x > 0:
-            self.scroll_x = self.x - avancee_max_gauche
+            if self.collision_right == False:
+                self.x += self.speed
             
-    def tir_creation(self):
-        
-        #création d'un tir avec la barre d'espace
-        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT, 0, 5):
-            self.tir_x = (self.x + self.width) if self.direction == 1 else self.x
-            self.tir_y = self.y + 30
-            self.tir_liste.append([self.tir_x, self.tir_y, self.direction])
-            self.tir = True
             
+            
+        elif pyxel.btn(pyxel.KEY_Q):
+            self.direction = -1
+            self.is_walking = True
+            if self.collision_left == False:
+                self.x -= self.speed
+            
+        
         else:
-            self.tir = False
-            
-    def consume_fuel(self):
+            self.is_walking = False
         
-        if self.jumping == True and self.fuel > 0:
-            self.fuel -= self.fuel_variations
-            self.fuel_bar_y += self.fuel_variations * 8
-        if self.jumping == False and self.fuel < self.fuel_init :
-            self.fuel += self.fuel_variations
-            self.fuel_bar_y -= self.fuel_variations * 8
-            
         
-    def tir_deplacement(self):
+        if self.collision_down:
+            if pyxel.btn(pyxel.KEY_SPACE):
+                self.gy -= self.jump_strength
+                self.is_jumping = True
+            else:
+                self.gy = 0
+                self.is_jumping = False
+                
+        if self.collision_up:
+            self.gy = self.gravity
         
-        #déplacement des tirs vers la droite ou la gauche et suppression s'ils sortent du cadre
-        for tir in self.tir_liste:
-            tir[0] += self.tir_speed*tir[2]
-            if  tir[0]<0 or tir[0]>screen_width:
-                self.tir_liste.remove(tir)
-    
-    
-    
-    def fuel_bar_color_change(self):
-        if self.fuel <= 9 and self.fuel >=6:
-            self.fuel_bar_color = 10
-            
-        elif self.fuel < 6 and self.fuel >= 3: 
-            self.fuel_bar_color = 9
-            
-        elif self.fuel < 3 and self.fuel >= 0:
-            self.fuel_bar_color = 4
-            
-            
-    
-    def update(self):
-        # Mise à jour des fonctions du personnage
-        self.deplacement_gauche_Personnage()
-        self.deplacement_droite_Personnage()
-        self.deplacement_vertical_Personnage()   
-        self.tir_creation()
-        self.tir_deplacement()
-        self.scroll_player()
-        self.consume_fuel()
-        self.fuel_bar_color_change()
+                
+        
+        self.y += self.gy
+        self.gy += self.gravity
 
-    
-    def draw(self):
-        # Affichage du personnage
-        # Chargement du fichier ressources
-        
-        
-        # Variable w permettant d'orienter le personnage vers la droite ou la gauche selon si elle est positive ou non
-        w = self.width if self.direction > 0 else -self.width
-        
-        # Affichage du personnage lorsqu'il n'est pas en train de tirer
-        if not self.tir:
-            pyxel.blt(self.x, self.y, 0, 16, 0, w, self.height, transparent_color)
-        
-        # Affichage du personnage en position de tir
-        elif self.tir:
-            pyxel.blt(self.x, self.y, 0, 48, 0, w, self.height, transparent_color)
-        
-        # Afichage des flammes sous la planche
-        if(pyxel.frame_count % 3 == 0):
-            pyxel.blt(self.x + 8, self.y + 69, 0, 29, 69, self.width - 3, 3, transparent_color)
-        if self.jumping is True:
-            pyxel.blt(self.x, self.y + 16, 0, 8, 72, w, 32, transparent_color)
-        
-        # Affichage des tirs    
-        for tir in self.tir_liste:
-            pyxel.rect(tir[0], tir[1], 4, 1, 10)    
+        if pyxel.btn(pyxel.KEY_S):
+            deplacement_down = True
+            if self.collision_down == False:
+                self.y += self.speed
+
+
+    def scroll_player(self):
+        global scroll_x, scroll_y
+        if self.x > (scroll_x + walking_max_right) and scroll_x < 1790:
+            scroll_x = self.x - walking_max_right
+        if self.x < (scroll_x + walking_max_left) and scroll_x > 0:
+            scroll_x = self.x - walking_max_left
             
-        self.fuel_bar_height = self.fuel
-        pyxel.rect(self.fuel_bar_x_init - 2 + self.scroll_x, self.fuel_bar_y_init-2, 14, self.fuel_init*8 + 4, 0)
-        pyxel.rect(self.fuel_bar_x + self.scroll_x, self.fuel_bar_y, 10, self.fuel_bar_height*8, self.fuel_bar_color)
-        pyxel.rect(self.health_bar_x-2 + self.scroll_x,self.health_bar_y-2,14,9*8+4,0)
-        pyxel.rect(self.health_bar_x + self.scroll_x,self.health_bar_y,10,9*8,3)
+        if self.y > 0 and self.y <= screen_height:
+            scroll_y = 0
+        elif self.y > screen_height and self.y < 2*screen_height:
+            scroll_y = screen_height
+        elif self.y > 2*screen_height and self.y < 3*screen_height:
+            scroll_y = 2*screen_height
+        elif self.y >= 3*screen_height and self.y < 4*screen_height:
+            scroll_y = 3*screen_height
+            
+    def player_gunshots(self):
+        if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and self.shot > 0:
+            self.gunshot_y_position = 18 if self.y_r == 1 else 17
+            self.gunshot_x_position = 20 if self.direction == 1 else 3
+            self.gunshots_list.append([self.x, self.y, self.direction, self.gunshot_y_position, self.gunshot_x_position])
+            self.shot -= 1
+        else :
+            self.gunshooting = False
+            
+        for gunshot in self.gunshots_list:
+            gunshot[0] += self.gunshot_speed * gunshot[2]
+        if pyxel.btnr(pyxel.KEY_R):
+            self.shot = 9
+            self.shot_bar_height += 9
+            
+    def consume_shot(self):
+        
+        if self.gunshooting == True and self.shot > 0:
+            self.shot -= self.shot_variations
+            self.shot_bar_height -= self.shot_variations
+        if self.gunshooting == False and self.shot < self.shot_init :
+            self.shot += self.shot_variations
+            
+
+    def update(self):
+        
+        global scroll_x, scroll_y
+        self.detection_collisions()
+        self.player_move()
+        self.scroll_player()
+        self.player_gunshots()
+        self.consume_shot()
+
+    def draw(self):
+        n = 5 if self.is_walking else 15
+        if (pyxel.frame_count % n == 0):
+            self.y_r = 1 if self.y_r == 0 else 0
+        # défilement images de marche 
+        if (pyxel.frame_count % (4//self.speed) == 0) and self.is_walking == True:
+            if self.f == self.f_1:
+                self.f = self.f_2
+            elif self.f == self.f_2:
+                self.f = self.f_3
+            elif self.f == self.f_3:
+                self.f = self.f_4
+            elif self.f == self.f_4:
+                self.f = self.f_5
+            elif self.f == self.f_5:
+                self.f = self.f_6
+            else:
+                self.f = self.f_1
+        if self.is_walking == False:
+            self.f = self.f_not_walking
+        if self.is_jumping == True:
+            self.f = self.f_jump 
+        # Variable w_f et variable x_f de compensation permettant d'orienter les jambes du personnage vers la right ou la left selon si elle est positive ou non + pareil avec w mais pour le buste      
+        if self.direction > 0:
+            w_f = self.f[2]
+            x_f = 0
+            w = self.width
+        else:
+            w_f = - self.f[2]
+            x_f = 12
+            w = - self.width
+            
+        pyxel.blt(self.x + x_f, self.y + self.chest_height,0, self.f[0], 21, w_f, 10, transparent_color)
+        pyxel.blt(self.x, self.y + self.y_r, 0, 32, 0, w, self.chest_height, transparent_color)
+        
+        for gunshot in self.gunshots_list:
+            pyxel.rect(gunshot[0] + gunshot[4], gunshot[1] + gunshot[3], 4, 1, 9)
+            
+        pyxel.rect(self.shot_bar_x_init - 2 + scroll_x, self.shot_bar_y_init-2, 14, self.shot_init + 4, 0)
+        pyxel.rect(self.shot_bar_x + scroll_x, self.shot_bar_y, 10, self.shot_bar_height, self.shot_bar_color)
+        
+        
+        
+class Ennemi_1:
+    def __init__(self):
+        self.player = Player()
+        self.img_x = 192
+        self.img_y = 0
+        self.width = 20
+        self.height = 21
+        self.speed = 2
         
         
         
         
-        # Affichage de la Dague
-        pyxel.blt(self.x + 25, self.y + 20, 0, self.map_dague_x, self.map_dague_y, self.dague_width, self.dague_height, transparent_color)
+    #def update(self):
         
-        pyxel.mouse(True) 
-     
-    
+        
+        
+    #def draw(self):
+        
+        
 class App:
-    
     def __init__(self):
         pyxel.init(screen_width, screen_height)
-        pyxel.load("resourcesfinal.pyxres")
-        self.personnage = Personnage()
+        pyxel.load("new.pyxres")
+        
+        self.player = Player()
         pyxel.run(self.update, self.draw)
     
     def update(self):
-        self.personnage.update()
-        
+        global game
+        if game == True:
+            self.player.update()
+    
+        if pyxel.btn(pyxel.KEY_G):
+            game = True
     
     def draw(self):
         pyxel.cls(0)
-        # Remplissage arrière-plan
-        pyxel.camera()
+        if game == True:
+            pyxel.camera()
+            for i in range(0, 1792, 256):
+                pyxel.bltm(i - scroll_x//3, 0, 0, 0, 1920, 256, 128, transparent_color)
+                
+            pyxel.bltm(0, 0, 0, scroll_x, scroll_y, 296, 128, transparent_color)
+            
+            pyxel.camera(scroll_x, scroll_y)
+            self.player.draw()
+    
         
-        for i in range(0, 1792, 256):
-            pyxel.bltm(i - self.personnage.scroll_x//3, 0, 0, 0, 1920, 256, 70, transparent_color)
-            pyxel.bltm(i - self.personnage.scroll_x//3, 70, 0, 0, 1920, 256, 128, transparent_color)
-            pyxel.bltm(i - self.personnage.scroll_x//3, 198, 0, 0, 1952, 256, 128, transparent_color)
-            pyxel.bltm(i - self.personnage.scroll_x//3, 224, 0, 0, 1952, 256, 96, transparent_color)
-        
-        
-        pyxel.bltm(0, 0, 0, self.personnage.scroll_x, 0, screen_width, screen_height, transparent_color)
-        pyxel.camera(self.personnage.scroll_x, 0)
-        self.personnage.draw()
-        
-        
-        
+        else:
+            pyxel.rect(0,0,screen_width, screen_height, 9)
 
-        
 App()
+ 
