@@ -24,6 +24,7 @@ class Player:
         self.img_x = 26
         self.img_y = 0
         self.speed = 2
+        self.health = 25
         self.direction = 1
         self.scroll_x = 0
         self.is_walking = False
@@ -55,26 +56,7 @@ class Player:
         self.max_y_down = screen_height
         self.max_y_up = 0
         
-        # variables de tirs
-        self.gunshots_list = []
-        self.gunshooting = False
-        self.gunshot_speed = 4
-        self.gunshot_y_position = 18
-        
-        self.shot_init = 25 #A NE PAS CHANGER
-        self.shot = self.shot_init
-        self.shot_variations = 1
-        self.shot_bar_x_init = 5
-        self.shot_bar_y_init = 5
-        self.shot_bar = self.shot
-        self.shot_bar_color = 7
-        self.shot_bar_x = 5
-        self.shot_bar_y = 5
-        self.shot_bar_height = self.shot_init
-        self.shot_bar_width = 5
 
-    
-    
     # Fonction detection collision 
     def detection_collisions(self):
 
@@ -187,40 +169,7 @@ class Player:
         elif self.y >= 3*screen_height and self.y < 4*screen_height:
             scroll_y = 3*screen_height
             
-    def player_gunshots(self):
-        global score
-        if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and self.shot > 0:
-            self.gunshot_y_position = 18 if self.y_r == 1 else 17
-            self.gunshot_x_position = 20 if self.direction == 1 else 3
-            self.gunshots_list.append([self.x, self.y, self.direction, self.gunshot_y_position, self.gunshot_x_position])
-            self.shot -= 1
-            pyxel.play(2, 1, 1, False)
-        else :
-            self.gunshooting = False
-            
-        for gunshot in self.gunshots_list:
-            gunshot[0] += self.gunshot_speed * gunshot[2]
-        if pyxel.btnr(pyxel.KEY_R):
-            self.shot = 9
-            self.shot_bar_height += 9
-            
-    def gunshots_collisions(self):
-        for gunshot in self.gunshots_list:
-            if pyxel.tilemap(0).pget((gunshot[0])//8, (gunshot[1])//8) in liste_obstacles:
-                self.gunshots_list.remove(gunshot)
-                break
-        
-        
-
-            
-    def consume_shot(self):
-        
-        if self.gunshooting == True and self.shot > 0:
-            self.shot -= self.shot_variations
-            self.shot_bar_height -= self.shot_variations
-        if self.gunshooting == False and self.shot < self.shot_init :
-            self.shot += self.shot_variations
-            
+    
 
     def update(self):
         
@@ -228,9 +177,7 @@ class Player:
         self.detection_collisions()
         self.player_move()
         self.scroll_player()
-        self.player_gunshots()
-        self.gunshots_collisions()
-        self.consume_shot()
+        
         
 
     def draw(self):
@@ -268,13 +215,61 @@ class Player:
         pyxel.blt(self.x + x_f, self.y + self.chest_height,0, self.f[0], 21, w_f, 10, transparent_color)
         pyxel.blt(self.x, self.y + self.y_r, 0, 32, 0, w, self.chest_height, transparent_color)
         
-        for gunshot in self.gunshots_list:
-            pyxel.rect(gunshot[0] + gunshot[4], gunshot[1] + gunshot[3], 4, 1, 9)
+        pyxel.rect(58 + scroll_x, scroll_y, 42, 9, 0)
+        pyxel.text(60 + scroll_x, 2 + scroll_y, "HP|      |", 7)
+        pyxel.rect(71 + scroll_x, 2 + scroll_y, self.health, 5, 9)
+        pyxel.text(80 + scroll_x, 2 + scroll_y, str(self.health), 7)
+        
+
+class Player_gunshots():
+    def __init__(self):
+        self.player = Player()
+        self.gunshots_list = []
+        self.gunshot_speed = 4
+        
+        self.munitions_init = 25 #A NE PAS CHANGER
+        self.munitions = 25
+
+        
+    def gunshots_creation(self):
+        if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and self.munitions > 0:
+            self.munitions -= 1
+            print(self.munitions)
+            self.gunshot_y_position = 18 if self.player.y_r == 1 else 17
+            self.gunshot_x_position = 20 if self.player.direction == 1 else 3
+            self.gunshots_list.append([self.player.x + self.gunshot_x_position, self.player.y + self.gunshot_y_position, self.player.direction])
+            pyxel.play(2, 1, 1, False)
             
-        pyxel.rect(self.shot_bar_x_init - 2 + scroll_x, self.shot_bar_y_init-2, 14, self.shot_init + 4, 0)
-        pyxel.rect(self.shot_bar_x + scroll_x, self.shot_bar_y, 10, self.shot_bar_height, self.shot_bar_color)
+    def fill_munitions(self):
+        if pyxel.btnr(pyxel.KEY_R) and self.munitions <= 0:
+            self.munitions = self.munitions_init
+
         
+    def gunshots_move(self):
+        for gunshot in self.gunshots_list:
+            gunshot[0] += gunshot[2] * self.gunshot_speed
+            
+    def gunshots_collisions_wall(self):
+        for gunshot in self.gunshots_list:
+            if pyxel.tilemap(0).pget((gunshot[0])//8, (gunshot[1])//8) in liste_obstacles:
+                self.gunshots_list.remove(gunshot)
+            
+    #def gunshots_collisions_ghosts
+    def update(self):
+        self.player.update()
+        self.fill_munitions()
+        self.gunshots_creation()
+        self.gunshots_move()
+        self.gunshots_collisions_wall()
         
+    def draw(self):
+        self.player.draw()
+        for gunshot in self.gunshots_list:
+            pyxel.rect(gunshot[0], gunshot[1], 4, 1, 9)
+        
+        pyxel.rect(scroll_x, scroll_y, 55, 9, 0)
+        pyxel.text(2 + scroll_x, 2 + scroll_y, "MUNITIONS:", 7)
+        pyxel.text(42 + scroll_x, 2 + scroll_y, str(self.munitions), 7)
         
 class Ghosts:
     def __init__(self):
@@ -301,9 +296,7 @@ class Ghosts:
         # première crétion de fantôme [nombre de fantômes créés, True ou False] si False alors déja effectuée
         self.first_creation = [20, True]
         
-        
-
-            
+      
     def ghosts_creation(self):
         #[x, y, points de vie, direction de déplacement]
         self.ghosts_list.append([random.randint(10, 2040), self.ghosts_y[random.randint(0, 3)], self.health, self.direction_list[random.randint(0, 1)]])
@@ -329,8 +322,9 @@ class Ghosts:
             ghost[1] == self.ghosts_y[1] and self.player.y >= 185 and self.player.y <= 209 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width or\
             ghost[1] == self.ghosts_y[2] and self.player.y >= 313 and self.player.y <= 337 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width or\
             ghost[1] == self.ghosts_y[3] and self.player.y >= 441 and self.player.y <= 465 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width:
-                ghost[2] -= 1
-                ghost[0] += 25 * ghost[3]
+                ghost[0] += 50 * ghost[3]
+                if self.player.health > 0:
+                    self.player.health -= 1
                 
     
                     
@@ -364,8 +358,9 @@ class App:
     def __init__(self):
         pyxel.init(screen_width, screen_height)
         pyxel.load("res.pyxres")
-        pyxel.playm(0, 120, True)
+        #pyxel.playm(0, 120, True)
         self.player = Player()
+        self.player_gunshots = Player_gunshots()
         self.ghosts = Ghosts()
         pyxel.run(self.update, self.draw)
     
@@ -373,6 +368,7 @@ class App:
         global game
         if game == True:
             self.player.update()
+            self.player_gunshots.update()
             self.ghosts.update()
     
         if pyxel.btn(pyxel.KEY_G):
@@ -390,6 +386,7 @@ class App:
             
             pyxel.camera(scroll_x, scroll_y)
             self.player.draw()
+            self.player_gunshots.draw()
             self.ghosts.draw()
             pyxel.rect(screen_width - 52 + scroll_x, scroll_y, 52, 9, 0)
             pyxel.text(screen_width - 50 + scroll_x, 2 + scroll_y, "SCORE:", 7)
