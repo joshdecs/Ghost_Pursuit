@@ -9,9 +9,11 @@ walking_max_right = 100
 walking_max_left = 100
 scroll_x = 0
 scroll_y = 0
-score = 999999
+score = 0
 liste_obstacles = [(0, 4), (1, 4), (0, 5), (1, 5)]
 game = False
+game_start = True
+game_over = False
 
     
 class Player:
@@ -328,12 +330,15 @@ class Ghosts:
     
                     
     def ghosts_remove(self):
+        global score
         for ghost in self.ghosts_list:
             if ghost[2] <= 0:
                 self.ghosts_list.remove(ghost)
+                score += 10
+                
+                
     def update(self):
         self.player.update()
-        print("l:",self.ghosts_list)
         self.ghosts_move()
         self.ghosts_collisions()
         self.ghosts_remove()
@@ -366,6 +371,7 @@ class App:
                 if gunshot[0] > ghost[0] and gunshot[0] < (ghost[0] + self.ghosts.width) and gunshot[1] > ghost[1] and gunshot[1] < (ghost[1] + self.ghosts.height):
                     self.player_gunshots.gunshots_list.remove(gunshot)
                     ghost[2] -= 1
+                    
         
     def update(self):
         global game
@@ -395,6 +401,10 @@ class App:
             pyxel.rect(screen_width - 52 + scroll_x, scroll_y, 52, 9, 0)
             pyxel.text(screen_width - 50 + scroll_x, 2 + scroll_y, "SCORE:", 7)
             pyxel.text(screen_width - 25 + scroll_x, 2 + scroll_y, str(score), 7)
+            pyxel.rect(screen_width - 94 + scroll_x, scroll_y, 40, 9, 0)
+            pyxel.text(screen_width - 92 + scroll_x, 2 + scroll_y, "GHOSTS:", 7)
+            pyxel.text(screen_width - 64 + scroll_x, 2 + scroll_y, str(len(self.ghosts.ghosts_list)), 7)
+            
     
         
         else:
