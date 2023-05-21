@@ -224,6 +224,7 @@ class Player:
 class Player_gunshots():
     def __init__(self):
         self.player = Player()
+        self.ghosts = Ghosts()
         self.gunshots_list = []
         self.gunshot_speed = 4
         
@@ -254,16 +255,27 @@ class Player_gunshots():
             if pyxel.tilemap(0).pget((gunshot[0])//8, (gunshot[1])//8) in liste_obstacles:
                 self.gunshots_list.remove(gunshot)
             
-    #def gunshots_collisions_ghosts
+    def gunshots_collisions_ghosts(self):
+        for ghost in self.ghosts.ghosts_list:
+            for gunshot in self.gunshots_list:
+                if gunshot[0] > ghost[0] and gunshot[0] < (ghost[0] + self.ghosts.width) and gunshot[1] > ghost[1] and gunshot[1] < (ghost[1] + self.ghosts.height):
+                    self.gunshots_list.remove(gunshot)
+                    ghost[2] -= 1
+                    break
+                    
+                    
     def update(self):
         self.player.update()
+        self.ghosts.update()
         self.fill_munitions()
         self.gunshots_creation()
         self.gunshots_move()
         self.gunshots_collisions_wall()
+        self.gunshots_collisions_ghosts()
         
     def draw(self):
         self.player.draw()
+        self.ghosts.draw()
         for gunshot in self.gunshots_list:
             pyxel.rect(gunshot[0], gunshot[1], 4, 1, 9)
         
@@ -337,11 +349,12 @@ class Ghosts:
             self.first_creation[1] = False
                 
         elif self.first_creation[1] == False:
-            if (pyxel.frame_count % 30 == 0):
+            if (pyxel.frame_count % 120 == 0) and len(self.ghosts_list) < 25:
                 self.ghosts_creation()
         
         self.ghosts_move()
         self.ghosts_collisions()
+        print(len(self.ghosts_list))
 
     def draw(self):
         self.player.draw()
