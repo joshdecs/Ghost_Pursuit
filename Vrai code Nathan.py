@@ -319,10 +319,7 @@ class Ghosts:
     def ghosts_collisions(self):
         for ghost in self.ghosts_list:
 
-            if ghost[1] == self.ghosts_y[0] and self.player.y >= 57 and self.player.y <= 81 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width or\
-            ghost[1] == self.ghosts_y[1] and self.player.y >= 185 and self.player.y <= 209 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width or\
-            ghost[1] == self.ghosts_y[2] and self.player.y >= 313 and self.player.y <= 337 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width or\
-            ghost[1] == self.ghosts_y[3] and self.player.y >= 441 and self.player.y <= 465 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width:
+            if ghost[1] <= (self.player.y + self.player.height) and (ghost[1] + self.height) >= self.player.y and ghost[0] <= (self.player.x + self.player.width) and (ghost[0] + self.width) >= self.player.x:
                 ghost[0] += 50 * ghost[3]
                 if self.player.health > 0:
                     self.player.health -= 1
