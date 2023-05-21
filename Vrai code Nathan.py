@@ -224,7 +224,6 @@ class Player:
 class Player_gunshots():
     def __init__(self):
         self.player = Player()
-        self.ghosts = Ghosts()
         self.gunshots_list = []
         self.gunshot_speed = 4
         
@@ -235,7 +234,6 @@ class Player_gunshots():
     def gunshots_creation(self):
         if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and self.munitions > 0:
             self.munitions -= 1
-            print(self.munitions)
             self.gunshot_y_position = 18 if self.player.y_r == 1 else 17
             self.gunshot_x_position = 20 if self.player.direction == 1 else 3
             self.gunshots_list.append([self.player.x + self.gunshot_x_position, self.player.y + self.gunshot_y_position, self.player.direction])
@@ -255,27 +253,16 @@ class Player_gunshots():
             if pyxel.tilemap(0).pget((gunshot[0])//8, (gunshot[1])//8) in liste_obstacles:
                 self.gunshots_list.remove(gunshot)
             
-    def gunshots_collisions_ghosts(self):
-        for ghost in self.ghosts.ghosts_list:
-            for gunshot in self.gunshots_list:
-                if gunshot[0] > ghost[0] and gunshot[0] < (ghost[0] + self.ghosts.width) and gunshot[1] > ghost[1] and gunshot[1] < (ghost[1] + self.ghosts.height):
-                    self.gunshots_list.remove(gunshot)
-                    ghost[2] -= 1
-                    break
-                    
-                    
+  
     def update(self):
         self.player.update()
-        self.ghosts.update()
         self.fill_munitions()
         self.gunshots_creation()
         self.gunshots_move()
         self.gunshots_collisions_wall()
-        self.gunshots_collisions_ghosts()
         
     def draw(self):
         self.player.draw()
-        self.ghosts.draw()
         for gunshot in self.gunshots_list:
             pyxel.rect(gunshot[0], gunshot[1], 4, 1, 9)
         
@@ -306,12 +293,12 @@ class Ghosts:
         self.ghosts_y = [90, 215, 345, 475]
         
         # première crétion de fantôme [nombre de fantômes créés, True ou False] si False alors déja effectuée
-        self.first_creation = [20, True]
+        self.number = 25
         
-      
-    def ghosts_creation(self):
-        #[x, y, points de vie, direction de déplacement]
-        self.ghosts_list.append([random.randint(10, 2040), self.ghosts_y[random.randint(0, 3)], self.health, self.direction_list[random.randint(0, 1)]])
+        for i in range(self.number):  
+            self.ghosts_list.append([random.randint(10, 2040), self.ghosts_y[random.randint(0, 3)], self.health, self.direction_list[random.randint(0, 1)]])
+        
+        
             
     def ghosts_move(self):
         for ghost in self.ghosts_list:
@@ -340,21 +327,17 @@ class Ghosts:
                 
     
                     
-
+    def ghosts_remove(self):
+        for ghost in self.ghosts_list:
+            if ghost[2] <= 0:
+                self.ghosts_list.remove(ghost)
     def update(self):
         self.player.update()
-        if self.first_creation[1] == True:
-            for i in range(self.first_creation[0] + 1):
-                self.ghosts_creation()
-            self.first_creation[1] = False
-                
-        elif self.first_creation[1] == False:
-            if (pyxel.frame_count % 120 == 0) and len(self.ghosts_list) < 25:
-                self.ghosts_creation()
-        
+        print("l:",self.ghosts_list)
         self.ghosts_move()
         self.ghosts_collisions()
-        print(len(self.ghosts_list))
+        self.ghosts_remove()
+        
 
     def draw(self):
         self.player.draw()
@@ -376,13 +359,21 @@ class App:
         self.player_gunshots = Player_gunshots()
         self.ghosts = Ghosts()
         pyxel.run(self.update, self.draw)
-    
+        
+    def collisions_ghosts_gunshots(self):
+        for ghost in self.ghosts.ghosts_list:
+            for gunshot in self.player_gunshots.gunshots_list:
+                if gunshot[0] > ghost[0] and gunshot[0] < (ghost[0] + self.ghosts.width) and gunshot[1] > ghost[1] and gunshot[1] < (ghost[1] + self.ghosts.height):
+                    self.player_gunshots.gunshots_list.remove(gunshot)
+                    ghost[2] -= 1
+        
     def update(self):
         global game
         if game == True:
             self.player.update()
             self.player_gunshots.update()
             self.ghosts.update()
+            self.collisions_ghosts_gunshots()
     
         if pyxel.btn(pyxel.KEY_G):
             game = True
