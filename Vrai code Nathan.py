@@ -9,6 +9,7 @@ walking_max_right = 100
 walking_max_left = 100
 scroll_x = 0
 scroll_y = 0
+score = 999999
 liste_obstacles = [(0, 4), (1, 4), (0, 5), (1, 5)]
 game = False
 
@@ -187,6 +188,7 @@ class Player:
             scroll_y = 3*screen_height
             
     def player_gunshots(self):
+        global score
         if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT) and self.shot > 0:
             self.gunshot_y_position = 18 if self.y_r == 1 else 17
             self.gunshot_x_position = 20 if self.direction == 1 else 3
@@ -323,18 +325,14 @@ class Ghosts:
     def ghosts_collisions(self):
         for ghost in self.ghosts_list:
 
-            if ghost[1] == self.ghosts_y[0] and self.player.y >= 57 and self.player.y <= 81 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width:
-                self.ghosts_list.remove(ghost)
+            if ghost[1] == self.ghosts_y[0] and self.player.y >= 57 and self.player.y <= 81 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width or\
+            ghost[1] == self.ghosts_y[1] and self.player.y >= 185 and self.player.y <= 209 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width or\
+            ghost[1] == self.ghosts_y[2] and self.player.y >= 313 and self.player.y <= 337 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width or\
+            ghost[1] == self.ghosts_y[3] and self.player.y >= 441 and self.player.y <= 465 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width:
+                ghost[2] -= 1
+                ghost[0] += 25 * ghost[3]
                 
-            elif ghost[1] == self.ghosts_y[1] and self.player.y >= 185 and self.player.y <= 209 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width:
-                self.ghosts_list.remove(ghost)
-                
-            elif ghost[1] == self.ghosts_y[2] and self.player.y >= 313 and self.player.y <= 337 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width: 
-                self.ghosts_list.remove(ghost)
-            
-            elif ghost[1] == self.ghosts_y[3] and self.player.y >= 441 and self.player.y <= 465 and ghost[0] + self.width >= self.player.x and ghost[0] + self.width <= self.player.x + 2 * self.player.width:
-                self.ghosts_list.remove(ghost)
-                    
+    
                     
 
     def update(self):
@@ -356,6 +354,9 @@ class Ghosts:
         for ghost in self.ghosts_list:
             w = self.width if ghost[3] == -1 else -self.width
             pyxel.blt(ghost[0], ghost[1], 0, self.img_x, self.img_y, w, self.height, transparent_color)
+            x_variation = 0 if ghost[3] == -1 else 7
+            pyxel.rect(ghost[0] - 1 + x_variation, ghost[1] - 4, self.health + 2, 3, 0)
+            pyxel.rect(ghost[0] + x_variation, ghost[1] - 3, ghost[2], 1, 10)
         
         
         
@@ -363,7 +364,7 @@ class App:
     def __init__(self):
         pyxel.init(screen_width, screen_height)
         pyxel.load("res.pyxres")
-        #pyxel.playm(0, 120, True)
+        pyxel.playm(0, 120, True)
         self.player = Player()
         self.ghosts = Ghosts()
         pyxel.run(self.update, self.draw)
@@ -379,6 +380,7 @@ class App:
     
     def draw(self):
         pyxel.cls(0)
+        pyxel.mouse(True) 
         if game == True:
             pyxel.camera()
             for i in range(0, 1792, 256):
@@ -389,9 +391,13 @@ class App:
             pyxel.camera(scroll_x, scroll_y)
             self.player.draw()
             self.ghosts.draw()
+            pyxel.rect(screen_width - 52 + scroll_x, scroll_y, 52, 9, 0)
+            pyxel.text(screen_width - 50 + scroll_x, 2 + scroll_y, "SCORE:", 7)
+            pyxel.text(screen_width - 25 + scroll_x, 2 + scroll_y, str(score), 7)
     
         
         else:
             pyxel.rect(0,0,screen_width, screen_height, 9)
 
 App() 
+
