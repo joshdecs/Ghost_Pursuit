@@ -465,17 +465,23 @@ class App:
             pyxel.rect(0, 0, screen_width, screen_height, 0)
             pyxel.bltm(0, 0, 0, 0, 576, screen_width, screen_height, transparent_color)
             pyxel.text(screen_width//2 - 27, screen_height//2 - 25, "GHOST PURSUIT", 7)
-            pyxel.text(screen_width//2 - 60 + 12, screen_height//2 + 10, "Touche g pour commencer", 7)
-            pyxel.text(screen_width//2 - 60 + 15, screen_height//2 + 18, "d pour aller a droite ", 7)
-            pyxel.text(screen_width//2 - 60 + 15, screen_height//2 + 26, "q pour aller a gauche", 7)
-            pyxel.text(screen_width//2 - 60 + 19, screen_height//2 + 34, "espace pour sauter", 7)
-            pyxel.text(screen_width//2 - 60 + 22, screen_height//2 + 42, "r pour recharger", 7)
+            pyxel.text(screen_width//2 - 40 + 12, screen_height//2 + 10, "Type g to start", 7)
+            pyxel.text(screen_width//2 - 40 + 15, screen_height//2 + 18, "d to go right ", 7)
+            pyxel.text(screen_width//2 - 40 + 15, screen_height//2 + 26, "q to go left", 7)
+            pyxel.text(screen_width//2 - 45 + 19, screen_height//2 + 34, "space to jump", 7)
+            pyxel.text(screen_width//2 - 45 + 22, screen_height//2 + 42, "r to reload", 7)
             
         elif game_lost == True:
             pyxel.camera(0, 0)
             pyxel.rect(0,0,screen_width, screen_height, 0)
             pyxel.bltm(0, 0, 0, 0, 576, screen_width, screen_height, transparent_color)
             pyxel.text(screen_width//2 - 35, screen_height//2 - 25, "YOU LOST THE GAME", 7)
+            pyxel.text(screen_width//2 - 95, screen_height//2 - -15, "YOU DIED IN JUST ", 7)
+            pyxel.text(screen_width//2 - 25, screen_height//2 - -15, str(timer_m), 8)
+            pyxel.text(screen_width//2 - 15, screen_height//2 - -15, "MINUTES AND ", 7)
+            pyxel.text(screen_width//2 - -35, screen_height//2 - -15, str(timer_s), 8)
+            pyxel.text(screen_width//2 - -45, screen_height//2 - -15,"SECONDS ! LOSER :)", 7)
+
             
         elif game_won == True:
             pyxel.camera(0, 0)
@@ -483,7 +489,14 @@ class App:
             pyxel.bltm(0, 0, 0, 0, 576, screen_width, screen_height, transparent_color)
             pyxel.text(screen_width//2 - 30, screen_height//2 - 25, "CONGRATULATIONS", 7)
             pyxel.text(screen_width//2 - 32, screen_height//2 - 19, "YOU WON THE GAME", 7)
+            pyxel.text(screen_width//2 - 110, screen_height//2 - -15, "YOU WON IN JUST ", 7)
+            pyxel.text(screen_width//2 - 40, screen_height//2 - -15, str(timer_m), 8)
+            pyxel.text(screen_width//2 - 30, screen_height//2 - -15, "MINUTES AND ", 7)
+            pyxel.text(screen_width//2 - -20, screen_height//2 - -15, str(timer_s), 8)
+            pyxel.text(screen_width//2 - -30, screen_height//2 - -15,"SECONDS IMPRESSIVE !", 7)
+            pyxel.text(screen_width//2 - 53, screen_height//2 - -35, "AND YOU ONLY LOST ", 7)
+            pyxel.text(screen_width//2 - -17, screen_height//2 - -35, str(25-self.player.health), 8)
+            pyxel.text(screen_width//2 - -27, screen_height//2 - -35,"LIVES !", 7)
             
 
 App() 
-
