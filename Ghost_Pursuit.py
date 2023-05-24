@@ -148,9 +148,9 @@ class Player:
             self.gy = self.gravity
         
                 
-        
-        self.y += self.gy
-        self.gy += self.gravity
+        if not self.collision_down:
+            self.y += self.gy
+            self.gy += self.gravity
 
         if pyxel.btn(pyxel.KEY_S):
             deplacement_down = True
