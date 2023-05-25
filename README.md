@@ -1,35 +1,23 @@
-Pasta Pursuit
-import pyxel
+Commands:
+Q : left
+D : right
+SPACE : jump
+R : fill munitions
+M : play or stop the music
+MOUSE BUTTON LEFT : shoot
 
-class Personnage:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.vy = 0
+GOAL:
+Your goal is to kill the 25 ghosts, then find the victory trophy, jump on it to win.
+The map has four stages:
+    1) brown
+    2) blue
+    3) red
+    4) yellow
 
-    def update(self):
-        if pyxel.btn(pyxel.KEY_LEFT):
-            self.x -= 1
-        if pyxel.btn(pyxel.KEY_RIGHT):
-            self.x += 1
-        if pyxel.btn(pyxel.KEY_SPACE) and self.vy == 0:
-            self.vy = -5
-        self.y += self.vy
-        if self.y >= 100:
-            self.y = 100
-            self.vy = 0
+Be careful ! There might be some traps...
+There are some bricks through which you can pass and it's up to you to find them !
 
-class App:
-    def __init__(self):
-        pyxel.init(200, 200)
-        self.personnage = Personnage(100, 100)
-        pyxel.run(self.update, self.draw)
+You have 25 health points, it probably seems to be a lot but you will see it's easy to loose them.
+Don't forget to fill your munitions (KEY R) once you don't have anymore.
 
-    def update(self):
-        self.personnage.update()
-
-    def draw(self):
-        pyxel.cls(0)
-        pyxel.circ(self.personnage.x, self.personnage.y, 5, 9)
-
-App()
+Good luck !
