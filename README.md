@@ -1,3 +1,5 @@
+License Creative Commons: CC BY-SA
+
 Here is the online version of the game but be careful it can get laggy. If so just open it on a local environment. 
 Enjoy !!!
 https://kitao.github.io/pyxel/wasm/launcher/?run=joshdecs.project_pasta-box_project.Ghost_Pursuit
