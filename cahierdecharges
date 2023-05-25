@@ -1,5 +1,9 @@
-Menu de départ:
-  - bouton commencer le jeu
-  - explications des touches
-
-Jeu : 
+Game: Platformer 
+- 1 Player : able to jump, to move right and left, and to shoot ennemis with his gun.
+- gun : limited number of munutions
+- Map : add at least two floors
+- Ennemis: at least one type of ennemi, they spawn at random position on the map
+           when an ennemi collides with the player, the player looses HP
+           The ennemi has health points (health bar above his head) and looses some HP when the player shoots him
+- If we have time, add a menu with instructions
+- The goal of the game is to find a trophy once all the ennemis have been killed
